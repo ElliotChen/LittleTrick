@@ -14,19 +14,19 @@
 		<java.version>1.8</java.version>
 
 		<global.version>1.0-SNAPSHOT</global.version>
-		<maven.compiler.release>12</maven.compiler.release>
-		<maven.compiler.source>12</maven.compiler.source>
-		<maven.compiler.target>12</maven.compiler.target>
+		<maven.compiler.release>14</maven.compiler.release>
+		<maven.compiler.source>14</maven.compiler.source>
+		<maven.compiler.target>14</maven.compiler.target>
 
-		<spring.version>5.2.1.RELEASE</spring.version>
-		<spring.security.version>5.2.0.RELEASE</spring.security.version>
-		<spring.boot.version>2.2.0.RELEASE</spring.boot.version>
+		<spring.version>5.2.9.RELEASE</spring.version>
+		<spring.security.version>5.4.0</spring.security.version>
+		<spring.boot.version>2.3.4.RELEASE</spring.boot.version>
 		<spring.data.version>Moore-RELEASE</spring.data.version>
 		<hibernate.version>5.4.6.Final</hibernate.version>
-		<jackson.version>2.10.0</jackson.version>
-		<junit.version>5.5.2</junit.version>
+		<jackson.version>2.11.2</jackson.version>
+		<junit.version>5.7.0</junit.version>
 		<jetty.version>9.4.11.v20180605</jetty.version>
-		<micrometer.version>1.3.0</micrometer.version>
+		<micrometer.version>1.5.5</micrometer.version>
 	</properties>
 
 	<dependencyManagement>
@@ -198,6 +198,21 @@
 				<version>3.1.0</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>29.0-jre</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aspects</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.retry</groupId>
+				<artifactId>spring-retry</artifactId>
+				<version>1.3.0</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -273,16 +288,28 @@
 					<executions>
 						<execution>
 							<goals>
+								<goal>build-info</goal>
 								<goal>repackage</goal>
 							</goals>
 						</execution>
 					</executions>
+					<configuration>
+						<image>
+							<env>
+								<BP_JVM_VERSION>14.0.2</BP_JVM_VERSION>
+							</env>
+						</image>
+						<layers>
+							<enabled>true</enabled>
+						</layers>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
 
 	<modules>
-	  <module>trick01</module>
+		<module>trick01</module>
+		<module>trick02</module>
   </modules>
 </project>

@@ -2,35 +2,33 @@ package tw.elliot.trick.thread;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @Slf4j
 public class Countdown {
 	public static void main(String[] args) {
 
 		int size = 5;
-		ExecutorService pool = Executors.newFixedThreadPool(size);
+
+		ExecutorService pool = new ThreadPoolExecutor(size, size,
+				60L, TimeUnit.SECONDS,
+				new ArrayBlockingQueue(size));
 		CountDownLatch latch = new CountDownLatch(size);
 		for (int i = 0; i < size; i++) {
-			final int current = i+1;
+			final int current = i + 1;
 			log.info("Task[{}] will be submitted.", current);
-			pool.submit(new Runnable() {
-				@Override
-				public void run() {
-					log.info("Task[{}] had been executed.", current);
-					try {
-						log.info("Task[{}] go to sleep.", current);
-						//睡一下，裝忙
-						Thread.sleep(current * 1000);
-						log.info("Task[{}] waked up.", current);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					latch.countDown();
+			pool.submit(() -> {
+				log.info("Task[{}] had been executed.", current);
+				try {
+					log.info("Task[{}] go to sleep.", current);
+					//睡一下，裝忙
+					Thread.sleep(current * 1000L);
+					log.info("Task[{}] waked up.", current);
+				} catch (InterruptedException e) {
+					log.error("Thread had been interrupted", e);
+					Thread.currentThread().interrupt();
 				}
+				latch.countDown();
 			});
 		}
 
@@ -44,7 +42,8 @@ public class Countdown {
 			latch.await();
 			log.info("All Tasks had finished.");
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			log.error("Thread had been interrupted", e);
+			Thread.currentThread().interrupt();
 		}
 	}
 }
