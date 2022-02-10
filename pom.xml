@@ -22,7 +22,7 @@
 		<spring.security.version>5.4.0</spring.security.version>
 		<spring.boot.version>2.3.4.RELEASE</spring.boot.version>
 		<spring.data.version>Moore-RELEASE</spring.data.version>
-		<hibernate.version>5.4.6.Final</hibernate.version>
+		<hibernate.version>5.4.24.Final</hibernate.version>
 		<jackson.version>2.11.2</jackson.version>
 		<junit.version>5.7.0</junit.version>
 		<jetty.version>9.4.11.v20180605</jetty.version>
