@@ -17,3 +17,11 @@
 不用自己再寫Counter 與 try/catch
 
 [Retry說明](./trick02/README.md)
+
+
+## Spring Boot Web Exception Handle
+
+1. 使用`RestControllerAdvice`
+2. 使用`hibernate-validator`
+
+[Spring Boot Exception Handle](./trick04/README.md)

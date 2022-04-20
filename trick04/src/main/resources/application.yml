@@ -1,0 +1,9 @@
+spring:
+  devtools:
+    restart:
+      enabled: false
+  #mvc:
+  #  converters:
+  #    preferred-json-mapper: gson
+  gson:
+    pretty-printing: true
