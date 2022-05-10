@@ -1,0 +1,105 @@
+version: "3.8"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION}
+    container_name: elasticsearch
+    environment:
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
+      - TZ=${TIME_ZONE}
+      - cluster.name=docker-cluster
+      - node.name=master
+      - cluster.initial_master_nodes=master
+      - network.host=0.0.0.0
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: nc -z localhost 9200 || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 100
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - tracing
+
+  #kibana:
+  #  image: docker.elastic.co/kibana/kibana:${ELK_VERSION}
+  #  container_name: kibana
+  #  environment:
+  #    - ES_JAVA_OPTS=${ES_JAVA_OPTS}
+  #    - TZ=${TIME_ZONE}
+  #    - SERVERNAME=kibana
+  #    - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #  ports:
+  #    - "5601:5601"
+  #  volumes:
+  #    - ./data/kibana:/usr/share/kibana/data
+  #  healthcheck:
+  #    test: nc -z localhost 5601 || exit 1
+  #    interval: 5s
+  #    timeout: 10s
+  #    retries: 120
+  #  networks:
+  #    - tracing
+  #  depends_on:
+  #    elasticsearch:
+  #      condition: service_healthy
+
+  oap:
+    image: apache/skywalking-oap-server:${SKW_VERSION}
+    container_name: oap
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    links:
+      - elasticsearch
+    ports:
+      - "11800:11800"
+      - "12800:12800"
+    healthcheck:
+      test: [ "CMD-SHELL", "/skywalking/bin/swctl ch" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    environment:
+      SW_STORAGE: elasticsearch
+      SW_STORAGE_ES_CLUSTER_NODES: elasticsearch:9200
+      SW_HEALTH_CHECKER: default
+      SW_TELEMETRY: prometheus
+      JAVA_OPTS: "-Xms1024m -Xmx1024m"
+    networks:
+      - tracing
+
+  ui:
+    image: apache/skywalking-ui:${SKW_VERSION}
+    container_name: ui
+    depends_on:
+      oap:
+        condition: service_healthy
+    links:
+      - oap
+    ports:
+      - "9080:8080"
+    environment:
+      SW_OAP_ADDRESS: http://oap:12800
+    networks:
+      - tracing
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: abcd1234
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - tracing
+
+networks:
+  tracing:
+    driver: bridge

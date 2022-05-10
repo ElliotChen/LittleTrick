@@ -1,0 +1,125 @@
+version: "3.8"
+
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION}
+    container_name: elasticsearch
+    environment:
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
+      - TZ=${TIME_ZONE}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-}
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - network.host=0.0.0.0
+      - http.host=0.0.0.0
+      - xpack.security.enabled=true
+      - xpack.security.authc.api_key.enabled=true
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: nc -z localhost 9200 || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 100
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - tracing
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${ELK_VERSION}
+    container_name: kibana
+    environment:
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
+      - TZ=${TIME_ZONE}
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - ./data/kibana:/usr/share/kibana/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -u elastic:changeme -s http://localhost:5601/api/status"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+    networks:
+      - tracing
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  fleet-server:
+    image: docker.elastic.co/beats/elastic-agent:${ELK_VERSION}
+    container_name: fleet-server
+    user: root
+    environment:
+      - FLEET_SERVER_ENABLE=1
+      - FLEET_SERVER_ELASTICSEARCH_HOST=http://elasticsearch:9200
+      - FLEET_SERVER_SERVICE_TOKEN=AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE2NTIxNDMxNjE0MjY6TEFfX1NGNWdReXU4Q3p0SHY2c0txQQ
+      - FLEET_SERVER_POLICY_ID=fleet-server-policy
+      - FLEET_SERVER_INSECURE_HTTP=true
+    ports:
+      - "8220:8220"
+    networks:
+      - tracing
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://127.0.0.1:8220/api/status | grep HEALTHY 2>&1 >/dev/null" ]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+    depends_on:
+      kibana:
+        condition: service_healthy
+
+  agent01:
+    image: docker.elastic.co/beats/elastic-agent:${ELK_VERSION}
+    container_name: agent01
+    user: root
+    environment:
+      - FLEET_ENROLLMENT_TOKEN=dUxCcnE0QUJVM0tRN1RmWkpKSnQ6RktIVVpzOWtSdmFKVGU4U1ppd2M2QQ==
+      - FLEET_ENROLL=1
+      - FLEET_URL=http://fleet-server:8220
+      - FLEET_INSECURE=true
+    ports:
+      - "8200:8200"
+    networks:
+      - tracing
+    depends_on:
+      fleet-server:
+        condition: service_healthy
+
+
+      #  apm-server:
+      #    image: docker.elastic.co/apm/apm-server:${ELK_VERSION}
+      #    container_name: apm-server
+      #    environment:
+      #      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-}
+      #      - TZ=${TIME_ZONE}
+      #    ports:
+      #      - "8200:8200"
+      #    volumes:
+      #      - ./config/apm/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro
+      #    networks:
+      #      - tracing
+      #    depends_on:
+      #      fleet-server:
+      #        condition: service_healthy
+      #kibana:
+      #  condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: abcd1234
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - tracing
+
+networks:
+  tracing:
+    driver: bridge

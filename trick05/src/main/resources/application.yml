@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: ectrace
+  datasource:
+    url: jdbc:mysql://localhost:3306/test
+    username: root
+    password: abcd1234
+  jpa:
+    hibernate:
+      ddl-auto: update
