@@ -40,23 +40,43 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
 	@Override
 	public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+		if (body instanceof ApplicationResult) {
+			return body;
+		}
+
+		Object result = ApplicationResult.success(body);
+
+		if (body instanceof String) {
+			return gson.toJson(result);
+		}
+
+		//returnType.getParameterType();
+		return result;
+		/*
 		if (body instanceof String) {
 			return gson.toJson(ApplicationResult.success(body));
 		}
 
-		if (body instanceof ApplicationResult) {
-			return body;
-		}
-		return ApplicationResult.success(body);
+
+
+
+
+		log.info("return type: [{}]", returnType);
+		log.info("{}", gson.toJson(result));
+		return result;
+
+		 */
 	}
 
 	@ExceptionHandler(RuntimeException.class)
-	public ApplicationResult handleRuntimeException() {
+	public ApplicationResult handleRuntimeException(RuntimeException e) {
+		log.error("Runtime Exception", e);
 		return ApplicationResult.create(ErrorEnum.RUNTIME);
 	}
 
 	@ExceptionHandler(BindException.class)
 	public ApplicationResult handleBindException(BindException e) {
+		log.error("Bind Exception", e);
 		ApplicationResult result = ApplicationResult.create(ErrorEnum.PARAMETER);
 		String message = e.getBindingResult()
 				.getAllErrors()
@@ -69,6 +89,7 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ApplicationResult handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+		log.error("Argument Exception", e);
 		ApplicationResult result = ApplicationResult.create(ErrorEnum.PARAMETER);
 		String message = e.getAllErrors()
 				.stream()
@@ -80,6 +101,7 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ApplicationResult handleConstraintViolationException(ConstraintViolationException e) {
+		log.error("Constraint Exception");
 		ApplicationResult result = ApplicationResult.create(ErrorEnum.PARAMETER);
 		String message = e.getConstraintViolations()
 				.stream()

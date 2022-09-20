@@ -44,7 +44,7 @@ Spring預設是使用Jackson來做為JSON的處理，但如果想改用Gson來�
 
 #### autoconfigure
 
-大家都知道，SpringBoot 用了很多的autoconfigure，以class可否載入做為判斷，輔以特定型態的Bean是否存在
+SpringBoot 用了很多的autoconfigure，以class可否載入做為判斷，輔以特定型態的Bean是否存在
 就可以自動產生基本的設定
 
 要將Spring預設使用的Jackson改用Gson有幾個條件，
@@ -141,7 +141,7 @@ public class GsonAutoConfiguration {
 搭配`RestControllerAdvice`與回應`ApplicationResult`可以簡寫成下列程式
 
 ```
-@ExceptionHandler(BindException.class)
+	@ExceptionHandler(BindException.class)
 	public ApplicationResult handleBindException(BindException e) {
 		ApplicationResult result = ApplicationResult.create(ErrorEnum.PARAMETER);
 		String message = e.getBindingResult()

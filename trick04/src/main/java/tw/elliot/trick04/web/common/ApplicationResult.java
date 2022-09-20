@@ -9,6 +9,7 @@ import lombok.Data;
 public class ApplicationResult<T> {
 	private int code;
 	private String message;
+
 	private T data;
 
 	public ApplicationResult() {

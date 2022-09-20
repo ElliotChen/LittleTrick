@@ -5,10 +5,10 @@ ext {
 }
 
 plugins {
-	id("org.springframework.boot") version "2.6.4"
-	id("io.spring.dependency-management") version "1.0.11.RELEASE"
-	kotlin("jvm") version "1.6.10"
-	kotlin("plugin.spring") version "1.6.10"
+	id("org.springframework.boot") version "2.7.1"
+	id("io.spring.dependency-management") version "1.0.12.RELEASE"
+	kotlin("jvm") version "1.7.0"
+	kotlin("plugin.spring") version "1.7.0"
 }
 
 group = "tw.elliot"
@@ -39,7 +39,7 @@ dependencies {
 	implementation("org.mapstruct:mapstruct:${mapstructVersion}")
 	//implementation("org.projectlombok:lombok:1.18.20")
 	//compileOnly("org.projectlombok:lombok")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	//developmentOnly("org.springframework.boot:spring-boot-devtools")
 	annotationProcessor("org.projectlombok:lombok")
 	annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
